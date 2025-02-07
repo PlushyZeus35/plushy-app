@@ -17,7 +17,7 @@ export async function POST(req: Request) {
         });
     
         if (!response.ok) {
-          return NextResponse.json({ error: `Error en Strapi: ${response.statusText} ${STRAPI_URL}/api/finanzas ${JSON.stringify(records)}` }, { status: response.status });
+          return NextResponse.json({ error: `Error en Strapi: ${response.statusText} ${await response.json()} ${STRAPI_URL}/api/finanzas ${JSON.stringify(records)}` }, { status: response.status });
         }
     
         const result = await response.json();
