@@ -35,13 +35,13 @@ export default function Creator() {
       ));
   }
 
-  const handleRemoveItem = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const itemId = e.target.name; // 🔹 Convertir name a número con `Number()`
+  const handleRemoveItem = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const itemId = e.currentTarget.name; // 🔹 Convertir name a número con `Number()`
     console.log("🔹 Eliminando item con ID:", itemId);
     setItems((prev) => prev.filter((eachPrev) => eachPrev.id !== itemId));
 };
 
-  const handleFinishClick = async (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleFinishClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
 	console.log("clickk");
 	console.log(items);
 	console.log("aqui llego?")

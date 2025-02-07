@@ -3,11 +3,19 @@ import { useRef, useState } from "react";
 import { Button, Col, Container, Form, Row } from "react-bootstrap";
 import {financeCategories} from "../app/constants/financeValueMapping";
 import { v4 as uuidv4 } from 'uuid';
-import Papa from "papaparse";
+import { parse } from 'csv-parse';
+
 interface FinanceFormProps {
     onAddFinanceRecord: (financeRecord: Finance) => void;
     onAddBulkFinanceRecords: (financeRecords: Finance[]) => void;
     onClearFinanceRecords: () => void;
+}
+
+interface FinanceRow {
+    operation_date: string;
+    value_date: string;
+    concept: string;
+    value: string
 }
 
 const formatDateForInput = (dateString: string): string => {
@@ -56,8 +64,8 @@ const FinanceRecord: React.FC<FinanceFormProps> = ({onAddFinanceRecord, onAddBul
         setIsFormValid(false)
     };
 
-    const handleOnChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target as HTMLInputElement | HTMLSelectElement;
+    const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
         setFormData(
             (prev) => {
                 const updatedFormData = { 
@@ -83,12 +91,75 @@ const FinanceRecord: React.FC<FinanceFormProps> = ({onAddFinanceRecord, onAddBul
         );        
     };
 
-    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleOnChangeSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setFormData(
+            (prev) => {
+                const updatedFormData = { 
+                    ...prev, 
+                    [name]: value 
+                };
+        
+                if (name === "category") {
+                    updatedFormData.subcategory = "";
+                }
+                const isFormValid = Boolean(
+                    updatedFormData.name &&
+                    updatedFormData.category &&
+                    updatedFormData.concept &&
+                    updatedFormData.type &&
+                    updatedFormData.value_date &&
+                    updatedFormData.subcategory
+                );
+        
+                setIsFormValid(isFormValid);
+                return updatedFormData;
+            }
+        );        
+    };
+
+    const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;
 
-        const reader = new FileReader();
-    reader.onload = async ({ target }) => {
+        const csvText = await file.text();
+
+        // 2. Usa csv-parse para parsearlo en el navegador
+        parse(
+        csvText,
+        {
+            columns: true,       // Usa primera fila como cabeceras, creando objetos
+            delimiter: ';',
+            skip_empty_lines: true,
+            trim: true,
+        },
+        (err, output: FinanceRow[]) => { // Callback con el array parseado
+            if (err) {
+                console.error("Error al parsear CSV:", err);
+                return;
+            }
+            console.log("Datos parseados:", output);
+            const records: Finance[] = [];
+            for(const eachFileRec of output){
+                records.push({
+                    id: uuidv4(),
+                    type: parseFloat(eachFileRec["value"].replace(",", ".")) > 0 ? 'Ingreso' : 'Gasto',
+                    concept: eachFileRec["concept"],
+                    name: eachFileRec["concept"],
+                    value_date: formatDateForInput(eachFileRec["value_date"]),
+                    value: Math.abs(parseFloat(eachFileRec["value"].replace(",", "."))),
+                    category: '',
+                    subcategory: ''
+                })
+            }
+            if (inputRef.current) {
+                inputRef.current.value = "";
+            }
+            onAddBulkFinanceRecords(records)
+        }
+        );
+
+        /*reader.onload = async ({ target }) => {
         if (!target?.result) return;
 
         const csv = target.result as string;
@@ -97,7 +168,7 @@ const FinanceRecord: React.FC<FinanceFormProps> = ({onAddFinanceRecord, onAddBul
             header: true, // Convierte la primera fila en claves del objeto
             skipEmptyLines: true, // Ignorar filas vacías
             delimiter: ";",
-            complete: (result) => {
+            complete: (result: ParseResult<FinanceRow>) => {
             // Mapear los datos a la interfaz `FinanceRecord`
             const records: Finance[] = result.data.map((row: any) => ({
                 id: uuidv4(),
@@ -116,7 +187,7 @@ const FinanceRecord: React.FC<FinanceFormProps> = ({onAddFinanceRecord, onAddBul
         });
         };
 
-        reader.readAsText(file);
+        reader.readAsText(file);*/
     };
 
     return (
@@ -143,7 +214,7 @@ const FinanceRecord: React.FC<FinanceFormProps> = ({onAddFinanceRecord, onAddBul
                 <Row className="mb-3">
                     <Form.Group as={Col}>
                         <Form.Label>Tipología</Form.Label>
-                        <Form.Select name="type" onChange={handleOnChange} value={formData.type}>
+                        <Form.Select name="type" onChange={handleOnChangeSelect} value={formData.type}>
                             <option value="">Selecciona una tipología</option>
                             <option value="Gasto">Gasto</option>
                             <option value="Ingreso">Ingreso</option>
@@ -152,7 +223,7 @@ const FinanceRecord: React.FC<FinanceFormProps> = ({onAddFinanceRecord, onAddBul
                     </Form.Group>
                     <Form.Group as={Col}>
                         <Form.Label>Categoría</Form.Label>
-                        <Form.Select name="category" onChange={handleOnChange} value={formData.category}>
+                        <Form.Select name="category" onChange={handleOnChangeSelect} value={formData.category}>
                             <option value="">Selecciona una categoría</option>
                             {Object.keys(financeCategories).map((category) => (
                                 <option key={category} value={category}>
@@ -163,7 +234,7 @@ const FinanceRecord: React.FC<FinanceFormProps> = ({onAddFinanceRecord, onAddBul
                     </Form.Group>
                     <Form.Group as={Col}>
                         <Form.Label>Subcategoría</Form.Label>
-                        <Form.Select name="subcategory" onChange={handleOnChange} value={formData.subcategory} disabled={!formData.category}>
+                        <Form.Select name="subcategory" onChange={handleOnChangeSelect} value={formData.subcategory} disabled={!formData.category}>
                             <option value="">Selecciona una subcategoría</option>
                             {formData.category &&
                                 financeCategories[formData.category].map((subcategory) => (

@@ -10,7 +10,7 @@ interface FinanceRec {
 const FinanceRecord: React.FC<FinanceRec> = ({item, onEdit}) => {
     const [financeRecord, setFinanceRecord] = useState(item);
 
-    const handleOnChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFinanceRecord((prev) => {
             const updatedRecord = { 
@@ -28,6 +28,26 @@ const FinanceRecord: React.FC<FinanceRec> = ({item, onEdit}) => {
         onEdit({ ...financeRecord, [name]: value, ...(name === "category" && { subcategory: "" }) });
         console.log({name, value})
     }
+
+    const handleOnChangeSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setFinanceRecord((prev) => {
+            const updatedRecord = { 
+                ...prev, 
+                [name]: value 
+            };
+    
+            if (name === "category") {
+                updatedRecord.subcategory = "";
+            }
+            //onEdit(updatedRecord);
+            return updatedRecord;
+            
+        })
+        onEdit({ ...financeRecord, [name]: value, ...(name === "category" && { subcategory: "" }) });
+        console.log({name, value})
+    }
+
     return (
         <>
             <Row>
@@ -48,7 +68,7 @@ const FinanceRecord: React.FC<FinanceRec> = ({item, onEdit}) => {
             </Row>
             <Row className="mt-3">
                 <Form.Group as={Col}>
-                    <Form.Select name="type" onChange={handleOnChange} value={financeRecord.type} size="sm">
+                    <Form.Select name="type" onChange={handleOnChangeSelect} value={financeRecord.type} size="sm">
                         <option value="">Selecciona una tipología</option>
                         <option value="Gasto">Gasto</option>
                         <option value="Ingreso">Ingreso</option>
@@ -56,7 +76,7 @@ const FinanceRecord: React.FC<FinanceRec> = ({item, onEdit}) => {
                     </Form.Select>
                 </Form.Group>
                 <Form.Group as={Col}>
-                    <Form.Select name="category" onChange={handleOnChange} value={financeRecord.category} size="sm">
+                    <Form.Select name="category" onChange={handleOnChangeSelect} value={financeRecord.category} size="sm">
                         <option value="">Selecciona una categoría</option>
                         {Object.keys(financeCategories).map((category) => (
                                 <option key={category} value={category}>
@@ -66,7 +86,7 @@ const FinanceRecord: React.FC<FinanceRec> = ({item, onEdit}) => {
                     </Form.Select>
                 </Form.Group>
                 <Form.Group as={Col}>
-                    <Form.Select name="subcategory" onChange={handleOnChange} value={financeRecord.subcategory} disabled={!item.category} size="sm">
+                    <Form.Select name="subcategory" onChange={handleOnChangeSelect} value={financeRecord.subcategory} disabled={!item.category} size="sm">
                         <option value="">Selecciona una subcategoría</option>
                         {financeRecord.category &&
                             financeCategories[financeRecord.category].map((subcategory) => (
