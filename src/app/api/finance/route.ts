@@ -1,7 +1,6 @@
 import { Finance } from "@/app/types/Finance";
 import { NextResponse } from "next/server";
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL;
-const API_KEY = process.env.NEXT_PUBLIC_STRAPI_API_KEY;
 
 export async function POST(req: Request) {
     try {
@@ -10,7 +9,7 @@ export async function POST(req: Request) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${API_KEY}`, // Usa la clave de Strapi de forma segura
+            Authorization: `Bearer ${process.env.STRAPI_API_KEY}`, // Usa la clave de Strapi de forma segura
           },
           body: JSON.stringify({ data: records }), // Strapi requiere `{ data: {...} }`
         });
