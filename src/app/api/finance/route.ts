@@ -1,8 +1,7 @@
 import { Finance } from "@/app/types/Finance";
 import { NextResponse } from "next/server";
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL;
-const API_KEY = process.env.STRAPI_API_KEY;
-let items: Finance[] = [];
+const API_KEY = process.env.NEXT_PUBLIC_STRAPI_API_KEY;
 
 export async function POST(req: Request) {
     try {
