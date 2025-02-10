@@ -4,6 +4,8 @@ const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL;
 
 export async function POST(req: Request) {
     try {
+      console.log(process.env.STRAPI_API_KEY)
+      console.log(process.env.NEXT_PUBLIC_STRAPI_URL)
         const { records } = await req.json(); // Leer los registros enviados desde el frontend
         const response = await fetch(`${STRAPI_URL}/api/finanzas`, {
           method: "POST",
@@ -15,7 +17,7 @@ export async function POST(req: Request) {
         });
     
         if (!response.ok) {
-          return NextResponse.json({ error: `Error en Strapi: ${response.statusText} ${JSON.stringify(await response.json())} ${process.env.STRAPI_API_KEY} ${STRAPI_URL}/api/finanzas ${JSON.stringify(records)}` }, { status: response.status });
+          return NextResponse.json({ error: `Error en Strapi: ${response.statusText} ${JSON.stringify(await response.json())} ${STRAPI_URL}/api/finanzas ${JSON.stringify(records)}` }, { status: response.status });
         }
     
         const result = await response.json();
