@@ -4,14 +4,12 @@ const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL;
 
 export async function POST(req: Request) {
     try {
-      console.log(process.env.STRAPI_API_KEY)
-      console.log(process.env.NEXT_PUBLIC_STRAPI_URL)
         const { records } = await req.json(); // Leer los registros enviados desde el frontend
         const response = await fetch(`${STRAPI_URL}/api/finanzas`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.STRAPI_API_KEY}`, // Usa la clave de Strapi de forma segura
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_API_KEY}`, // Usa la clave de Strapi de forma segura
           },
           body: JSON.stringify({ data: records }), // Strapi requiere `{ data: {...} }`
         });
