@@ -21,3 +21,20 @@ export const mapFinanceToStrapi = (record: Finance) => {
         ExternalId: record.id
     }
 }
+
+export const mapStrapiToFinance = (records : any) => {
+    const financeRecords:Finance[] = [];
+    for(let eachRecord of records){
+        financeRecords.push({
+            id: eachRecord.ExternalId,
+            name: eachRecord.Nombre,
+            concept: eachRecord.Concepto,
+            value_date: eachRecord.Fecha_valor,
+            type: eachRecord.Tipologia,
+            category: eachRecord.Categoria,
+            subcategory: eachRecord.Subcategoria,
+            value: eachRecord.Cantidad
+        });
+    }
+    return financeRecords;
+}
