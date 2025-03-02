@@ -4,6 +4,7 @@ import { Finance, mapStrapiToFinance } from "../types/Finance";
 import FinanceAnualStats from "@/components/stadistics/financeAnualStats/FinanceAnualStats";
 import "./page.css";
 import { Container, Form, Nav, Navbar, Spinner } from "react-bootstrap";
+import FinanceMensualStats from "@/components/stadistics/financeMensualStats/FinanceMensualStats";
 function getLocalDateString(date: Date) {
   const year = date.getFullYear();
   // getMonth() devuelve el mes de 0 a 11, por eso se suma 1
@@ -85,7 +86,10 @@ export default function FinanceHome() {
         {isLoading ? (
           <Spinner animation="grow" variant="light" />
         ) : (
-			<FinanceAnualStats items={financeRecords} />
+          <>
+			    <FinanceAnualStats items={financeRecords} />
+          <FinanceMensualStats items={financeRecords} />
+          </>
         )}
       </Container>
 		</div>
