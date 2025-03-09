@@ -1,10 +1,12 @@
 "use client";
 import { useState } from "react";
 import { Finance, mapFinanceToStrapi } from "../../types/Finance";
-import { Button, Container, Stack } from "react-bootstrap";
+import { Button, Col, Container, Nav, Navbar, Row, Stack } from "react-bootstrap";
 import FinanceForm from "@/components/FinanceForm";
 import FinanceRecord from "@/components/FinanceRecord";
-
+import FinanceCreatorStats from "@/components/stadistics/financeCreatorStats/financeCreatorStats";
+import { useRouter } from "next/navigation";
+import "./page.css";
 const areItemsValidToBackend = (items: Finance[]): boolean => {
 	return items.every((record) =>
 		record.id &&
@@ -35,8 +37,8 @@ export default function Creator() {
       ));
   }
 
-  const handleRemoveItem = (e: React.MouseEvent<HTMLButtonElement>) => {
-    const itemId = e.currentTarget.name; // 🔹 Convertir name a número con `Number()`
+  const handleRemoveItem = (itemToDelete: Finance) => {
+    const itemId = itemToDelete.id; // 🔹 Convertir name a número con `Number()`
     console.log("🔹 Eliminando item con ID:", itemId);
     setItems((prev) => prev.filter((eachPrev) => eachPrev.id !== itemId));
 };
@@ -90,27 +92,47 @@ export default function Creator() {
 
   return (
     <>
-		<FinanceForm onAddFinanceRecord={onAddFinanceRecord} onAddBulkFinanceRecords={addBulkFinanceRecords} onClearFinanceRecords={clearFinanceRecords}></FinanceForm>
-		<Container className="mt-3">
-			{items.map(item => (
-				<div key={item.id} className="border-top border-3 py-3">
-				<Stack >
-					<FinanceRecord item={item} onEdit={handleOnEdit}>
-					</FinanceRecord>
-				</Stack>
-				<Stack className="mt-3">
-					<Button name={item.id} onClick={handleRemoveItem} variant="outline-danger">Eliminar</Button>
-				</Stack>
-				</div>
-				
-			))}
-		</Container>
-		<Container className="border-top border-3 py-3">
-			<Button variant="primary" onClick={handleFinishClick} disabled={items.length==0}>
-				Crear
-			</Button>
-		</Container>
-	
+		<Navbar sticky="top" expand="lg" variant="dark" className="navbar">
+          <Container fluid>
+            <Navbar.Brand href="#" style={{ color: '#1a1a1a' }}>P.L.U.S.H.Y</Navbar.Brand>
+            <Navbar.Toggle aria-controls="basic-navbar-nav" />
+            <Navbar.Collapse id="basic-navbar-nav" className="justify-content-end">
+              <Nav>
+                <Nav.Link href="#" style={{ color: '#1a1a1a' }}>Creación</Nav.Link>
+                <Nav.Link href="#" style={{ color: '#1a1a1a' }}>Estadísticas</Nav.Link>
+              </Nav>
+            </Navbar.Collapse>
+          </Container>
+        </Navbar>
+		<div style={{backgroundColor: "#f5f5f5", minHeight: "100vh", paddingTop: "30px"}}>
+			<Container>
+				<Row>
+					<Col md={8}>
+						<FinanceForm onAddFinanceRecord={onAddFinanceRecord} onAddBulkFinanceRecords={addBulkFinanceRecords} onClearFinanceRecords={clearFinanceRecords}></FinanceForm>
+						<Container className="mt-3">
+							{items.map(item => (
+								<div key={item.id} className="border-top border-3 py-3">
+									<Stack>
+										<FinanceRecord item={item} onEdit={handleOnEdit} onRemoveItem={handleRemoveItem}>
+										</FinanceRecord>
+									</Stack>
+								</div>
+							))}
+						</Container>
+						<Container className="border-top border-3 py-3">
+							<Button variant="primary" onClick={handleFinishClick} disabled={items.length==0}>
+								Crear
+							</Button>
+						</Container>
+					</Col>
+					<Col md={4}>
+						<div className="sticky-top" style={{top: "80px"}}>
+							<FinanceCreatorStats items={items}></FinanceCreatorStats>
+						</div>
+					</Col>
+				</Row>
+			</Container>
+		</div>
     </>
   );
 }

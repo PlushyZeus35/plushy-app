@@ -158,36 +158,6 @@ const FinanceRecord: React.FC<FinanceFormProps> = ({onAddFinanceRecord, onAddBul
             onAddBulkFinanceRecords(records)
         }
         );
-
-        /*reader.onload = async ({ target }) => {
-        if (!target?.result) return;
-
-        const csv = target.result as string;
-
-        Papa.parse(csv, {
-            header: true, // Convierte la primera fila en claves del objeto
-            skipEmptyLines: true, // Ignorar filas vacías
-            delimiter: ";",
-            complete: (result: ParseResult<FinanceRow>) => {
-            // Mapear los datos a la interfaz `FinanceRecord`
-            const records: Finance[] = result.data.map((row: any) => ({
-                id: uuidv4(),
-                type: parseFloat(row["value"].replace(",", ".")) > 0 ? 'Ingreso' : 'Gasto',
-                concept: row["concept"],
-                name: row["concept"],
-                value_date: formatDateForInput(row["value_date"]),
-                value: Math.abs(parseFloat(row["value"].replace(",", ".")))
-            }));
-            if (inputRef.current) {
-                inputRef.current.value = "";
-            }
-            onAddBulkFinanceRecords(records)
-            console.log(records);
-            },
-        });
-        };
-
-        reader.readAsText(file);*/
     };
 
     return (
