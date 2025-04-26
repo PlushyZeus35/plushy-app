@@ -5,8 +5,8 @@ import { Button, Col, Container, Nav, Navbar, Row, Stack } from "react-bootstrap
 import FinanceForm from "@/components/FinanceForm";
 import FinanceRecord from "@/components/FinanceRecord";
 import FinanceCreatorStats from "@/components/stadistics/financeCreatorStats/financeCreatorStats";
-import { useRouter } from "next/navigation";
 import "./page.css";
+import CreatorModal from "@/components/creatorModal/CreatorModal";
 const areItemsValidToBackend = (items: Finance[]): boolean => {
 	return items.every((record) =>
 		record.id &&
@@ -22,7 +22,7 @@ const areItemsValidToBackend = (items: Finance[]): boolean => {
 
 export default function Creator() {
   const [items, setItems] = useState<Finance[]>([]);
-
+	const [showModal, setShowModal] = useState(false);
   const onAddFinanceRecord = (newFinanceRecord: Finance) => {
 	console.log("finance rec");
 	console.log(newFinanceRecord)
@@ -56,9 +56,9 @@ export default function Creator() {
 	for(const item of items){
 		parsedList.push(mapFinanceToStrapi(item))
 	}
-	
+	setShowModal(true);
 		console.log("aqui llego")
-		let errors = 0;
+		/*let errors = 0;
 		for(const eachParsedItem of parsedList){
 			try{
 				const response = await fetch("/api/finance", { // 🔒 El cliente solo llama a esta API interna
@@ -75,9 +75,9 @@ export default function Creator() {
 				errors = errors + 1;
 				console.log(error)
 			}
-		}
-		alert('Errores: ' + errors)
-		setItems([]);
+		}*/
+		//alert('Errores: ' + errors)
+		//setItems([]);
   }
 
   const addBulkFinanceRecords = (newFinanceRecords: Finance[]) => {
@@ -89,6 +89,11 @@ export default function Creator() {
   const clearFinanceRecords = () => {
 	setItems([]);
   }
+
+	function handleConfirm(): void {
+		console.log("confirmar")
+		setShowModal(false);
+	}
 
   return (
     <>
@@ -104,6 +109,7 @@ export default function Creator() {
             </Navbar.Collapse>
           </Container>
         </Navbar>
+		{showModal && <CreatorModal show={showModal} onHide={() => setShowModal(false)} onConfirm={handleConfirm} records={items} />}
 		<div style={{backgroundColor: "#f5f5f5", minHeight: "100vh", paddingTop: "30px"}}>
 			<Container>
 				<Row>
