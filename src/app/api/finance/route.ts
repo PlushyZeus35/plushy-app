@@ -1,68 +1,43 @@
 import { Finance } from "@/app/types/Finance";
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { options } from "@/app/api/auth/[...nextauth]/options";
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL;
 
 // init = fecha inicial range = day,month,year
 export async function GET(req: Request){
+	const session = await getServerSession(options);
+	if (!session || !session.user?.email) {
+		return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+	}
+  console.log(session.jwt)
+  // Aquí tu lógica para obtener las comidas
+  // const meals = await fetch(...);
+    if(!session.jwt){
+        return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    }
 	const { searchParams } = new URL(req.url);
 	let range = searchParams.get('range');
 	let init = searchParams.get('init');
-	let query = `${STRAPI_URL}/api/finanzas`;
-	const records = [];
-	if(!init){
-		const today = new Date();
-		const currentYear = today.getFullYear();
-		const currentMonth = today.getMonth();
-		const firstDayOfCurrentMonth = new Date(currentYear, currentMonth, 1);
-		init = firstDayOfCurrentMonth.toISOString().slice(0, 10);
+	const res = await fetch(
+    `${process.env.PLUSHYSERVER_URL}/finance?init=${init}&range=${range}`,
+    {
+        headers: {
+            Authorization: `Bearer ${session.jwt}`,
+            "Content-Type": "application/json"
+        }
+    }
+);
+	const data = await res.json();
+	if (!res.ok) {
+		return NextResponse.json({ error: `Error al obtener los registros: ${res.statusText} ${JSON.stringify(data)}` }, { status: res.status });
 	}
-	if(!range){
-		range = 'month';
-	}
-	console.log(init)
-	console.log(range)
-	if(range == 'day'){
-		query = query + `?filters[Fecha_valor][$eq]=${init}`;
-	}else if(range == 'year'){
-		const [yearStr, monthStr, dayStr] = init.split('-');
-		const year = parseInt(yearStr, 10);
-		const month = parseInt(monthStr, 10);
-		const day = parseInt(dayStr, 10);
-		const nextYear = year + 1;
-		const nextDate = new Date(nextYear, month - 1, day);
-		query = query + `?filters[Fecha_valor][$gte]=${init}&filters[Fecha_valor][$lt]=${nextDate.toISOString().slice(0, 10)}`;
-	}else{
-		const [anioStr, mesStr] = init.split("-");
-		const anio = parseInt(anioStr, 10);
-		const mes = parseInt(mesStr, 10);
-		const ultimoDiaFecha = new Date(anio, mes, 0);
-		query = query + `?filters[Fecha_valor][$gte]=${init}&filters[Fecha_valor][$lte]=${ultimoDiaFecha.toISOString().slice(0, 10)}`;
+	console.log(data)
+	if (!data || !Array.isArray(data.data)) {
+		return NextResponse.json({ error: "Datos no válidos" }, { status: 400 });
 	}
 
-	const response = await fetch(query, {
-		method: "GET",
-		headers: {
-		  "Content-Type": "application/json",
-		  Authorization: `Bearer ${process.env.STRAPI_API_KEY}`, 
-		},
-	});
-	let respJson = await response.json();
-	records.push(...respJson.data)
-	while (respJson.meta.pagination.page < respJson.meta.pagination.pageCount) {
-		// Siguiente página
-		const nextPage = respJson.meta.pagination.page + 1;
-		const pagedQuery = query + `&pagination[page]=${nextPage}&pagination[pageSize]=${respJson.meta.pagination.pageSize}`;
-		// Haces un nuevo fetch ajustando el parámetro de página
-		const nextResponse = await fetch(
-		  pagedQuery
-		);
-		
-		respJson = await nextResponse.json();
-	  
-		// Agregas estos datos al array principal
-		records.push(...respJson.data);
-	  }
-	return NextResponse.json(records);
+	return NextResponse.json(data.data, { status: res.status });
 }
 
 export async function POST(req: Request) {

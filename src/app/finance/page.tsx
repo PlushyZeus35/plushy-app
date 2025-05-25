@@ -5,6 +5,8 @@ import FinanceAnualStats from "@/components/stadistics/financeAnualStats/Finance
 import "./page.css";
 import { Container, Form, Nav, Navbar, Spinner } from "react-bootstrap";
 import FinanceMensualStats from "@/components/stadistics/financeMensualStats/FinanceMensualStats";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 function getLocalDateString(date: Date) {
   const year = date.getFullYear();
   // getMonth() devuelve el mes de 0 a 11, por eso se suma 1
@@ -20,14 +22,22 @@ function getInitActualMonth(){
 }
 
 export default function FinanceHome() {
+  // ASSERT SESSION USER
+  const session = useSession();
 
-	const [financeRecords, setFinanceRecords] = useState<Finance[]>([]);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
+  const router = useRouter();
+  useEffect(() => {
+    if (session.status === "unauthenticated") {
+      router.push('/auth/');
+    }
+  }, [session.status, router]);
 
-    useEffect(() => {
+      useEffect(() => {
+      if (!session.data?.user) return;
         fetch(`/api/finance?init=${getInitActualMonth()}&range=year`)
           .then((res) => res.json())
           .then((data) => {
+            console.log(data)
 			    setFinanceRecords(mapStrapiToFinance(data))
 				console.log(data)
           })
@@ -37,8 +47,15 @@ export default function FinanceHome() {
       .finally(() => {
         setIsLoading(false);
       })
-      }, []); 
+      }, [session.data?.user]);
+          // STATE
+	const [financeRecords, setFinanceRecords] = useState<Finance[]>([]);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
 
+  if (session.status === "loading") {
+    return <div>Loading...</div>;
+  }
+ 
 	function handleChangeYear(targetYear: String){
 		setIsLoading(true);
 		const firstDayOfYear = new Date(parseInt(targetYear.toString()), 0, 1);
